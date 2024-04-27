@@ -1,2 +1,3 @@
-# docs
-OctopOS Prime Documentations
+# octoposPrimeDev
+
+Developmenet and test env for Octopos Prime
