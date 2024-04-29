@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0
       - run: git init
       - name: edit_pr
-      - run: |
+        run: |
           gh pr edit "$NUMBER" --add-project "$PROJECT" --add-label "$LABELS"
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
