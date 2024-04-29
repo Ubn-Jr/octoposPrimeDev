@@ -10,8 +10,13 @@ jobs:
     permissions:
       pull-requests: write
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - run: git init
+      - name: edit_pr
       - run: |
-          gh  pr edit "$NUMBER" --add-project "$PROJECT" --add-label "$LABELS"
+          gh pr edit "$NUMBER" --add-project "$PROJECT" --add-label "$LABELS"
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           LABELS: ${{ secrets.REPO_TEAM }}
