@@ -1,25 +1,20 @@
 name: Assign Project and Member
-
 on:
   pull_request:
-    types: [opened]
-
+    types:
+      - opened
+      
 jobs:
   label_pr:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
     steps:
-      - name: Check Git availability
-        run: git --version
-      
-      - name: Assign Project and Label
-        run: |
-          gh pr edit ${{ github.event.issue.number }} \
-            --add-project ${{ secrets.ASSIGN_PROJECT }} \
-            --add-labels ${{ secrets.REPO_TEAM }}
+      - run: |
+          gh  pr edit "$NUMBER" --add-project "$PROJECT" --add-label "$LABELS"
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          LABELS: ${{ secrets.REPO_TEAM }}
           GH_REPO: ${{ github.repository }}
-          SECRET_LABELS: ${{ secrets.REPO_TEAM }}
-          ASSIGN_PROJECT: ${{ secrets.ASSIGN_PROJECT }}
+          NUMBER: ${{ github.event.issue.number }}
+          PROJECT: ${{ secrets.ASSIGN_PROJECT }}
