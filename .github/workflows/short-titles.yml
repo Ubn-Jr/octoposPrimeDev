@@ -1,0 +1,56 @@
+name: Enforce Short Title
+on:
+  issues:
+    types:
+      - opened
+  pull_request:
+    types:
+      - opened
+
+jobs:
+  enforce_short_title:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Check Title Length
+        id: title_check
+        run: |
+          if [ "$GITHUB_EVENT_NAME" == "issues" ]; then
+            title=$(jq -r '.issue.title' "$GITHUB_EVENT_PATH")
+            title_length=${#title}
+            if [ "$title_length" -ge 40 ]; then
+              echo "::error::Issue title length should be less than 40 characters."
+              exit 1
+            fi
+          elif [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+            title=$(jq -r '.pull_request.title' "$GITHUB_EVENT_PATH")
+            title_length=${#title}
+            if [ "$title_length" -ge 40 ]; then
+              echo "::error::Pull request title length should be less than 40 characters."
+              exit 1
+            fi
+          fi
+      - name: Update Issue/Pull Request Title
+        if: failure()
+        run: |
+          if [ "$GITHUB_EVENT_NAME" == "issues" ]; then
+            new_title=$(echo "$title" | cut -c -39)
+            echo "::set-output name=new_title::$new_title"
+            gh issue edit "$NUMBER" --title "$new_title"
+          elif [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+            new_title=$(echo "$title" | cut -c -39)
+            echo "::set-output name=new_title::$new_title"
+            gh pr edit "$NUMBER" --title "$new_title"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUMBER: ${{ github.event.issue.number }} # For issues
+          LABELS: ${{ secrets.REPO_TEAM }}
+          GH_REPO: ${{ github.repository }}
+          PROJECT: ${{ secrets.ASSIGN_PROJECT }}
+          # NUMBER: ${{ github.event.pull_request.number }} # For pull requests
