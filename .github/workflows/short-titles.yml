@@ -38,6 +38,8 @@ jobs:
               exit 1
             fi
           fi
+        continue-on-error: true
+
           
       - name: Truncate Title
         if: ${{ steps.title_check.outcome == 'failure' }}
