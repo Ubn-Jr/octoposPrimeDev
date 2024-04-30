@@ -42,13 +42,16 @@ jobs:
         run: |
           if [ "$GITHUB_EVENT_NAME" == "issues" ]; then
             new_title=$(echo "$title" | cut -c -39)
+            echo "New title for issue: $new_title"
             echo "::set-output name=new_title::$new_title"
             gh issue edit "$NUMBER" --title "$new_title"
           elif [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
             new_title=$(echo "$title" | cut -c -39)
+            echo "New title for pull request: $new_title"
             echo "::set-output name=new_title::$new_title"
             gh pr edit "$NUMBER" --title "$new_title"
           fi
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUMBER: ${{ github.event.issue.number }} # For issues
