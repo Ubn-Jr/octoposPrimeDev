@@ -38,30 +38,29 @@ jobs:
               exit 1
             fi
           fi
-        continue-on-error: true
+          
+      - name: Truncate Title
+        if: ${{ steps.title_check.outcome == 'failure' }}
+        id: truncate_title
+        run: |
+          if [ "$GITHUB_EVENT_NAME" == "issues" ]; then
+            title=$(jq -r '.issue.title' "$GITHUB_EVENT_PATH")
+          elif [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+            title=$(jq -r '.pull_request.title' "$GITHUB_EVENT_PATH")
+          fi
+          new_title=$(echo "$title" | awk '{print substr($0, 1, 40)}')
+          echo "New title: $new_title"
+          echo "NEW_TITLE=$new_title" >> $GITHUB_ENV
 
       - name: Update Issue/Pull Request Title
         if: ${{ steps.title_check.outcome == 'failure' }}
         run: |
+          new_title="${{ env.NEW_TITLE }}"
           if [ "$GITHUB_EVENT_NAME" == "issues" ]; then
-            title=$(jq -r '.issue.title' "$GITHUB_EVENT_PATH")
-            new_title=$(echo "$title" | cut -c -39)
-            if [ "$title" != "$new_title" ]; then
-              echo "New title for issue: $new_title"
-              echo "NEW_TITLE=$new_title" >> $GITHUB_ENV
-              gh issue edit "$NUMBER" --title "$new_title"
-            fi
+            gh issue edit "$NUMBER" --title "$new_title"
           elif [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
-            title=$(jq -r '.pull_request.title' "$GITHUB_EVENT_PATH")
-            new_title=$(echo "$title" | cut -c -39)
-            if [ "$title" != "$new_title" ]; then
-              echo "New title for pull request: $new_title"
-              echo "NEW_TITLE=$new_title" >> $GITHUB_ENV
-              gh pr edit "$NUMBER" --title "$new_title"
-            fi
+            gh pr edit "$NUMBER" --title "$new_title"
           fi
-        continue-on-error: true
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUMBER: ${{ github.event.issue.number }} # For issues
