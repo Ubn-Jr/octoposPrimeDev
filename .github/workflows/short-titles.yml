@@ -40,7 +40,6 @@ jobs:
           fi
         continue-on-error: true
 
-          
       - name: Truncate Title
         if: ${{ steps.title_check.outcome == 'failure' }}
         id: truncate_title
@@ -50,7 +49,7 @@ jobs:
           elif [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
             title=$(jq -r '.pull_request.title' "$GITHUB_EVENT_PATH")
           fi
-          new_title=$(echo "$title" | awk '{print substr($0, 1, 40)}')
+          new_title=$(echo "$title" | cut -c -40 | sed 's/ *$//')
           echo "New title: $new_title"
           echo "NEW_TITLE=$new_title" >> $GITHUB_ENV
 
