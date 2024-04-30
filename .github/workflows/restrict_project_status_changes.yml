@@ -1,0 +1,23 @@
+name: Restrict Project Status Changes
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  restrict_project_status_changes:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - run: |
+          # Authorization checks and action steps are added here
+          # For example, ensuring that only authorized users can change project status
+          # In this example, you can add a command to check authorization
+
+          if [ "$USER" != "authorized_user" ]; then
+            echo "Unauthorized user. Only authorized team leads can change project status."
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
