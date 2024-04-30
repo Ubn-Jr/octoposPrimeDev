@@ -1,11 +1,10 @@
 name: Enforce Short Title
+
 on:
   issues:
-    types:
-      - opened
+    types: [opened]
   pull_request:
-    types:
-      - opened
+    types: [opened]
 
 jobs:
   enforce_short_title:
@@ -15,10 +14,12 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.ref }}
+          
       - name: Check Title Length
         id: title_check
         run: |
@@ -37,25 +38,21 @@ jobs:
               exit 1
             fi
           fi
+
       - name: Update Issue/Pull Request Title
         if: failure()
         run: |
           if [ "$GITHUB_EVENT_NAME" == "issues" ]; then
             new_title=$(echo "$title" | cut -c -39)
             echo "New title for issue: $new_title"
-            echo "::set-output name=new_title::$new_title"
+            echo "NEW_TITLE=$new_title" >> $GITHUB_ENV
             gh issue edit "$NUMBER" --title "$new_title"
           elif [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
             new_title=$(echo "$title" | cut -c -39)
             echo "New title for pull request: $new_title"
-            echo "::set-output name=new_title::$new_title"
+            echo "NEW_TITLE=$new_title" >> $GITHUB_ENV
             gh pr edit "$NUMBER" --title "$new_title"
           fi
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUMBER: ${{ github.event.issue.number }} # For issues
-          LABELS: ${{ secrets.REPO_TEAM }}
-          GH_REPO: ${{ github.repository }}
-          PROJECT: ${{ secrets.ASSIGN_PROJECT }}
-          # NUMBER: ${{ github.event.pull_request.number }} # For pull requests
