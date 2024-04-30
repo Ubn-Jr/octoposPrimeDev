@@ -49,9 +49,16 @@ jobs:
           elif [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
             title=$(jq -r '.pull_request.title' "$GITHUB_EVENT_PATH")
           fi
-          new_title=$(echo "$title" | awk '{ print substr($0, 1, 40) }')
-          # Preserve whole words by finding the last space within the first 40 characters
-          new_title=$(echo "$new_title" | awk '{ sub(/\..*/, "", $0); print }')
+          # Check if the title exceeds 40 characters
+          title_length=${#title}
+          if [ "$title_length" -ge 40 ]; then
+            # Truncate the title at the last space within the first 40 characters
+            new_title=$(echo "$title" | awk '{ print substr($0, 1, 40) }')
+            new_title=$(echo "$new_title" | awk '{ sub(/\s+[^ ]*$/, ""); print }')
+          else
+            # Title doesn't need truncation
+            new_title="$title"
+          fi
           echo "New title: $new_title"
           echo "NEW_TITLE=$new_title" >> $GITHUB_ENV
 
