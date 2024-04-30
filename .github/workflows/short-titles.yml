@@ -38,6 +38,7 @@ jobs:
               exit 1
             fi
           fi
+        continue-on-error: true
 
       - name: Update Issue/Pull Request Title
         if: failure()
