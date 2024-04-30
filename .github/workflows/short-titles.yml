@@ -43,11 +43,15 @@ jobs:
         if: failure()
         run: |
           if [ "$GITHUB_EVENT_NAME" == "issues" ]; then
+            title=$(jq -r '.issue.title' "$GITHUB_EVENT_PATH")
+            echo "Title for issue: $title"
             new_title=$(echo "$title" | cut -c -39)
             echo "New title for issue: $new_title"
             echo "NEW_TITLE=$new_title" >> $GITHUB_ENV
             gh issue edit "$NUMBER" --title "$new_title"
           elif [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+            title=$(jq -r '.pull_request.title' "$GITHUB_EVENT_PATH")
+            echo "Title for pull request: $title"
             new_title=$(echo "$title" | cut -c -39)
             echo "New title for pull request: $new_title"
             echo "NEW_TITLE=$new_title" >> $GITHUB_ENV
