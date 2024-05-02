@@ -1,22 +1,21 @@
-name: Track Issue Movement in Projects
+name: Project Card Activity
 
 on:
   project_card:
-    types: [moved, created, deleted]
+    types: [moved, created, edited, deleted]
 
 jobs:
-  track-movement:
+  log-movement:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Get column name
+    - name: Get column details
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # Get column details
         column_url="${{ github.event.project_card.column_url }}"
-        column_name=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$column_url" | jq -r '.name')
-
-        echo "The issue is now in the column: $column_name"
+        column_details=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$column_url")
+        column_name=$(echo "$column_details" | jq -r '.name')
+        echo "The issue card is now in the column: $column_name"
