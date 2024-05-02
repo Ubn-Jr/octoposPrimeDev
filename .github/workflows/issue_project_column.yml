@@ -1,35 +1,22 @@
-name: Get Issue Project Column
+name: Track Issue Movement in Projects
 
 on:
-  issues:
-    types: [opened, edited, transferred, labeled, unlabeled, closed, reopened]
+  project_card:
+    types: [moved, created, deleted]
 
 jobs:
-  find-column:
+  track-movement:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-      
-    - name: Install JQ
-      run: sudo apt-get install jq
 
-    - name: Get issue project column
+    - name: Get column name
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
-        # Get all projects in the repository
-        projects_url=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/projects" | jq -r '.[0].url')
-        
-        # Get all columns for the first project
-        columns=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.inertia-preview+json" "$projects_url/columns")
-        
-        # Find the card corresponding to the issue
-        issue_id="${{ github.event.issue.id }}"
-        card=$(echo "$columns" | jq --arg issue_id "$issue_id" '.[] | .cards_url' | xargs -I {} curl -s -H "Authorization: token $GITHUB_TOKEN" {} | jq --arg issue_id "$issue_id" 'select(.content_url | endswith($issue_id))')
-        
-        # Get the column name
-        column_id=$(echo "$card" | jq -r '.column_url | split("/") | .[-1]')
-        column_name=$(echo "$columns" | jq --arg column_id "$column_id" '.[] | select(.id == ($column_id | tonumber)) | .name')
-        
-        echo "Issue is in the column: $column_name"
+        # Get column details
+        column_url="${{ github.event.project_card.column_url }}"
+        column_name=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$column_url" | jq -r '.name')
+
+        echo "The issue is now in the column: $column_name"
