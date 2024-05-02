@@ -1,21 +1,18 @@
-name: Project Card Activity
+name: Issue Edited
 
 on:
-  project_card:
-    types: [moved, created, edited, deleted]
+  issues:
+    types: [edited]
 
 jobs:
-  log-movement:
+  issue-details:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Get column details
+    - name: Log issue details
+      run: echo "Issue #$ISSUE_NUMBER was edited. The current state is $ISSUE_STATE."
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-        column_url="${{ github.event.project_card.column_url }}"
-        column_details=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$column_url")
-        column_name=$(echo "$column_details" | jq -r '.name')
-        echo "The issue card is now in the column: $column_name"
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        ISSUE_STATE: ${{ github.event.issue.state }}
