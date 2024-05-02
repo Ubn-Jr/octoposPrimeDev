@@ -1,17 +1,20 @@
-name: Log Issue Details
+name: Log Issue and Project Details
 
 on:
   issues:
     types: [opened, edited, reopened, closed, labeled, unlabeled, assigned, unassigned, milestoned, demilestoned]
+  project_card:
+    types: [created, edited, moved, deleted]
 
 jobs:
   log-details:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: Log issue details
+        if: github.event_name == 'issues'
         run: |
           echo "Issue Number: ${{ github.event.issue.number }}"
           echo "Issue Title: ${{ github.event.issue.title }}"
@@ -24,3 +27,12 @@ jobs:
           echo "Issue Created at: ${{ github.event.issue.created_at }}"
           echo "Issue Updated at: ${{ github.event.issue.updated_at }}"
           echo "Issue Closed at: ${{ github.event.issue.closed_at }}"
+
+      - name: Log project card details
+        if: github.event_name == 'project_card'
+        run: |
+          echo "Project Card Action: ${{ github.event.action }}"
+          echo "Card Content URL: ${{ github.event.project_card.content_url }}"
+          echo "Card Column Name: ${{ github.event.project_card.column_name }}"
+          echo "Card Created at: ${{ github.event.project_card.created_at }}"
+          echo "Card Updated at: ${{ github.event.project_card.updated_at }}"
