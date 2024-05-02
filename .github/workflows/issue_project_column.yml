@@ -1,18 +1,16 @@
-name: Issue Edited
+name: Log Status Changes
 
 on:
   issues:
     types: [edited]
 
 jobs:
-  issue-details:
+  log-status-change:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Check out repository
+        uses: actions/checkout@v3
 
-    - name: Log issue details
-      run: echo "Issue #$ISSUE_NUMBER was edited. The current state is $ISSUE_STATE."
-      env:
-        ISSUE_NUMBER: ${{ github.event.issue.number }}
-        ISSUE_STATE: ${{ github.event.issue.state }}
+      - name: Log the status change
+        run: |
+          echo "Issue #$GITHUB_ISSUE_NUMBER moved from $OLD_STATUS to $NEW_STATUS"
