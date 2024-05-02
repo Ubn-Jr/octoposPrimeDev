@@ -13,7 +13,7 @@ jobs:
 
     - name: Get column details
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         column_url="${{ github.event.project_card.column_url }}"
         column_details=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$column_url")
