@@ -1,16 +1,26 @@
-name: Log Status Changes
+name: Log Issue Details
 
 on:
   issues:
-    types: [edited]
+    types: [opened, edited, reopened, closed, labeled, unlabeled, assigned, unassigned, milestoned, demilestoned]
 
 jobs:
-  log-status-change:
+  log-details:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      - name: Log the status change
+      - name: Log issue details
         run: |
-          echo "Issue #$GITHUB_ISSUE_NUMBER moved from $OLD_STATUS to $NEW_STATUS"
+          echo "Issue Number: ${{ github.event.issue.number }}"
+          echo "Issue Title: ${{ github.event.issue.title }}"
+          echo "Issue Body: ${{ github.event.issue.body }}"
+          echo "Issue State: ${{ github.event.issue.state }}"
+          echo "Issue Labels: ${{ github.event.issue.labels.*.name }}"
+          echo "Issue Assignees: ${{ github.event.issue.assignees.*.login }}"
+          echo "Issue Milestone: ${{ github.event.issue.milestone.title }}"
+          echo "Issue Creator: ${{ github.event.issue.user.login }}"
+          echo "Issue Created at: ${{ github.event.issue.created_at }}"
+          echo "Issue Updated at: ${{ github.event.issue.updated_at }}"
+          echo "Issue Closed at: ${{ github.event.issue.closed_at }}"
