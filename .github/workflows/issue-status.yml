@@ -1,0 +1,30 @@
+name: Update Issue Status to "In Review"
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+
+jobs:
+  update_issue_status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Update Issue Status
+        run: |
+          ISSUE_NUMBER=$(echo "$GITHUB_BODY" | grep -oE '#[0-9]+' | grep -oE '[0-9]+')
+          if [ -n "$ISSUE_NUMBER" ]; then
+            curl \
+              -X PATCH \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -d '{"state":"In_Review"}' \
+              "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.repository }}/issues/$ISSUE_NUMBER$"
+            echo "no issue referenced in the pull request."
+          fi
+        env:
+          GITHUB_BODY: ${{ github.event.pull_request.body }}
