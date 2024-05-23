@@ -6,15 +6,19 @@ on:
       - opened
       - edited
       - synchronize
+  issues:
+    types:
+      - opened
 
 jobs:
-  update_issue_and_assign:
+  update_issue_status:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Update Issue Status
+        if: github.event_name == 'pull_request'
         run: |
           ISSUE_NUMBER=$(echo "$GITHUB_BODY" | grep -oE '#[0-9]+' | grep -oE '[0-9]+')
           if [ -n "$ISSUE_NUMBER" ]; then
@@ -22,7 +26,7 @@ jobs:
               -X PATCH \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
-              -d '{"state":"In Review"}' \
+              -d '{"state":"in_review"}' \
               "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.repository }}/issues/$ISSUE_NUMBER"
             echo "Issue status updated."
           else
@@ -31,12 +35,21 @@ jobs:
         env:
           GITHUB_BODY: ${{ github.event.pull_request.body }}
 
-      - name: Assign Project and Member
-        if: success()
+  label_issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Set up GitHub CLI
+        run: sudo apt-get install gh
+
+      - name: Label Issues
+        if: github.event_name == 'issues'
         run: |
-          curl \
-            -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -d '{"project_id": ${{ secrets.ASSIGN_PROJECT_ID }}, "assignees": ["${{ secrets.ASSIGN_USERNAME }}"], "labels": ["${{ secrets.REPO_TEAM }}"]}' \
-            "https://api.github.com/repos/${{ github.repository }}/issues/${ISSUE_NUMBER}}"
+          gh issue edit "$NUMBER" --add-project "$PROJECT" --add-label "$LABELS"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LABELS: ${{ secrets.REPO_TEAM }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+          PROJECT: ${{ secrets.ASSIGN_PROJECT }}
